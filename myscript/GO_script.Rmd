@@ -1,0 +1,84 @@
+---
+title: "GO_script"
+author: "qliu"
+date: "2019年1月9日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#### 单个样品GO分析
+```{r}
+rm(list = ls())
+setwd("E:/NGS_my_script/GO/")
+library("clusterProfiler")
+library(ggplot2)
+library(stringr)
+#读入差异表达的转录因子，注意这里分隔符是"\t",默认没有表头。如果是逗号分隔符请使用sep=","
+gene <- read.csv("j5_down.txt", header = FALSE,sep="\t")
+gene <- as.vector(gene$V1)
+#读入在样本中表达的转录因子，这一部分即是背景基因
+term2gene <- read.csv("plaza_v4_go.osa.txt", header = FALSE,sep="\t")
+#读入转录因子ID与名字对应的文件
+term2name <- read.csv("plaza_v4_GO.name.txt" ,header=FALSE, sep="\t")
+#进行富集分析
+x <- enricher(gene,TERM2GENE=term2gene, TERM2NAME=term2name, 
+              pvalueCutoff = 1, pAdjustMethod = "BH",
+              qvalueCutoff = 1)
+write.csv(x, "./GO_Result/j5_down_enrich.csv")
+
+## 如果直接用x作为输入enrichGO的输出，用Y叔说的赋值骗一下就好
+# x@ontology <- "a"
+dotplot(x, showCategory=10) 
+```
+
+
+#### 单个样品GO分析
+```{r}
+rm(list = ls())
+setwd("E:/NGS_my_script/GO/")
+library("clusterProfiler")
+library(ggplot2)
+library(stringr)
+#读入差异表达的转录因子，注意这里分隔符是"\t",默认没有表头。如果是逗号分隔符请使用sep=","
+j5 <- read.csv("GO_Result/j5_down.txt", header = FALSE,sep="\t")
+j5$sample = "j5"
+OXj5 <- read.csv("GO_Result/OXJ5_UP.txt", header = FALSE,sep="\t")
+OXj5$sample = "OXj5"
+gene <- rbind(j5, OXj5)
+colnames(gene)[1] <- "geneid"
+
+test <- compareCluster(geneid ~ sample, data = gene, fun = "enricher", TERM2GENE=term2gene, TERM2NAME=term2name)
+GO_2_sample <- dotplot(test, showCategory = 10, split = "sample")
+write.csv(test, "./GO_Result/test2sample_j5down_OXJ5up_enrich.csv")
+```
+
+
+
+#### JA_hypo_up
+```{r}
+rm(list = ls())
+setwd("E:/NGS_my_script/GO/")
+library("clusterProfiler")
+library(ggplot2)
+library(stringr)
+#读入差异表达的转录因子，注意这里分隔符是"\t",默认没有表头。如果是逗号分隔符请使用sep=","
+gene <- read.csv("hypo_JA_up_K27.txt", header = FALSE,sep="\t")
+gene <- as.vector(gene$V1)
+#读入在样本中表达的转录因子，这一部分即是背景基因
+term2gene <- read.csv("plaza_v4_go.osa.txt", header = FALSE,sep="\t")
+#读入转录因子ID与名字对应的文件
+term2name <- read.csv("plaza_v4_GO.name.txt" ,header=FALSE, sep="\t")
+#进行富集分析
+x <- enricher(gene,TERM2GENE=term2gene, TERM2NAME=term2name, 
+              pvalueCutoff = 1, pAdjustMethod = "BH",
+              qvalueCutoff = 1)
+write.csv(x, "./GO_Result/ja_hypo_up_enrich.csv")
+
+## 如果直接用x作为输入enrichGO的输出，用Y叔说的赋值骗一下就好
+# x@ontology <- "a"
+dotplot(x, showCategory=10) 
+```
